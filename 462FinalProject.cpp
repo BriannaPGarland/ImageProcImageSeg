@@ -1,4 +1,24 @@
+/*How to use if using visual studio on windows: 
+	1. ensure that the image you wish to process is in the SAME folder as the .exe file and that it is a .jpg or .jpeg 
+	2. Then esure you build the project in visual studio 
+	3. Using the cmd line of your choosing cd into the file location where the exe is
+	3. Then Run the command: ./462FinalProject
+	4. You will then be asked to enter the file name of the image you put in that folder, BE SURE to include the file type at the end (.jpg/.jpeg)
+	5. Then enter the name of what you want the output image to be named, again INCLUDE the file type (can be anything you want it to be)
+	6. Then you will be asked to select which imag processing process you would like to take part in, enter the number of which one and hit enter 
+		Edge Detection(1): after you type 1 and hit enter in the previous step, a black and white version of your image will apear, then hit any
+				     key to contine, this will bring up the image processed edge detection image, then click any key to close the window.
+		Image Segment Selector(2) (THE MAIN PROGRAM ~ End Result): after you type 2 and hit enter in the previous step, a black and white version of your
+									   image will apear, Then with your mouse, click on the part of the image you would like to 
+									   select and turn white. Then hit a key to continue this will then display an image with
+									   just the part of the image you selected whited out. Press any key to close the window
+		Shade Selector (3) (an intermediate step): after you type 2 and hit enter in the previous step, a black and white version of your image will apear,
+							   Then with your mouse, click on the part of the image you would like to select every instance or shade of 
+							   the color you clicked on. Then press any key, then an image where every instance of the color you selected
+							   will now be white. Press any key to close the window. 							   
+*/
 
+//Libraries 
 #include <iostream>
 #include <stdio.h>
 #include <string.h>
@@ -7,13 +27,13 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/imgproc.hpp>
 
+//Global Variables
 using namespace std;
 using namespace cv;
-
 int mouseX = 0;
 int mouseY = 0;
 
-// function that allows functionality for the mouse
+//This function allows the user to click on the screen and assigns the value of where in the image there was a mouse click 
 void handleMouseSelect(int event, int x, int y, int flags, void* userdata)
 {
 	if (event == EVENT_LBUTTONDOWN) 
@@ -23,7 +43,12 @@ void handleMouseSelect(int event, int x, int y, int flags, void* userdata)
 	}
 }
 
-// Edge Detection method 1 from the hw 
+//--------------------------------------------------------------------------------------------------------------------------	
+//------ 				Different image processing methods for different actions         	       -----
+//--------------------------------------------------------------------------------------------------------------------------
+
+//**************************************** Edge Detection method 1 from the hw **********************************************
+
 void edgeDetect1(int** image_out, int** image_in, int** image_edge, int height, int width)
 {
 	
@@ -50,8 +75,9 @@ void edgeDetect1(int** image_out, int** image_in, int** image_edge, int height, 
 					image_out[i][j] = 255;
 		}
 }
+//****************************************************************************************************************************
 
-// Make selected color pixels negative at every instance ( has a range of color value of 20)
+//***************** Make selected color pixels negative at every instance ( has a range of color value of 20)*****************
 void shadeSelector(int** image_out, int** image_in,int height, int width) {
 	for (int j = 0; j < height; j++)
 		for (int k = 0; k < width; k++) {
@@ -65,6 +91,9 @@ void shadeSelector(int** image_out, int** image_in,int height, int width) {
 		}
 }
 
+//****************************************************************************************************************************
+
+//******** Image Segment Selection Method (Click the image and select only that segment of the image and turn it white *******
 void imageSegmentation (int** image_out, int** image_in, int height, int width) {
 	int threshold = 50;
 	int selectedValue = image_in[mouseX][mouseY];
@@ -75,10 +104,10 @@ void imageSegmentation (int** image_out, int** image_in, int height, int width) 
 	int nextY = selectedValue;
 	
 	//-----------------------------------------------------------------------------------
-	//------ 			First edge detection run  (width then height)				-----
+	//------ 		First edge detection run  (width then height)		-----
 	//-----------------------------------------------------------------------------------
 
-	//Right - Bottom Quadrant
+	//~~ Right - Bottom Quadrant:  Going down and then too the right until edge ~~ 
 	//going down
 	while (abs(selectedValue - nextX) < threshold && i < height) {
 		
@@ -93,13 +122,13 @@ void imageSegmentation (int** image_out, int** image_in, int height, int width) 
 		 j = mouseX;
 		 nextY = selectedValue;
 	}
-
+	
+	//~~ Right - Top Quadrant: Going up and then too the right until edge ~~
 	//resetting the values
 	i = mouseY+1;
 	j = mouseX;
 	nextX = selectedValue;
 	nextY = selectedValue;
-	//Right - Top Quadrant
 	//going up
 	while (abs(selectedValue - nextX) < threshold && i < height) {
 
@@ -115,7 +144,7 @@ void imageSegmentation (int** image_out, int** image_in, int height, int width) 
 		nextY = selectedValue;
 	}
 
-	//Left - Top  Quadrant
+	//~~ Left - Top Quadrant: Going up and then too the left until edge ~~
 	//resetting the values
 	i = mouseY+1;
 	j = mouseX;
@@ -135,7 +164,8 @@ void imageSegmentation (int** image_out, int** image_in, int height, int width) 
 		j = mouseX;
 		nextY = selectedValue;
 	}
-	//Left - Bottom  Quadrant
+	
+	//~~ Left - Bottom  Quadrant: Going down and then too the left until edge ~~
 	//resetting the values
 	i = mouseY;
 	j = mouseX;
@@ -159,22 +189,21 @@ void imageSegmentation (int** image_out, int** image_in, int height, int width) 
 
 
 	//-----------------------------------------------------------------------------------
-	//------ 			2nd edge detection run  (Height then width)				-----
+	//------ 			2nd edge detection run  (Height then width)	-----
 	//-----------------------------------------------------------------------------------
 	
+	//Right - Bottom Quadrant: Going to the right and then down until edge ~~
 	i = mouseY;
 	j = mouseX;
 	nextX = selectedValue;
 	nextY = selectedValue;
-
-	//Right - Bottom Quadrant
-	//going down
+	//going right
 	while (abs(selectedValue - nextY) < threshold && j < width) {
 
 		image_out[i][j] = 255;
 		nextY = image_in[i][j++];
 
-		//going to the right
+		//going to the down
 		while (abs(selectedValue - nextX) < threshold && i < height) {
 			image_out[i][j] = 255;
 			nextX = image_in[i++][j];
@@ -183,19 +212,19 @@ void imageSegmentation (int** image_out, int** image_in, int height, int width) 
 		nextX = selectedValue;
 	}
 	
-	//Right - Top Quadrant
+	//Right - Top Quadrant: Going to the right and then up until edge ~~
 	//resetting the values
 	i = mouseY;
 	j = mouseX;
 	nextX = selectedValue;
 	nextY = selectedValue;
-	//going up 
+	//going right 
 	while (abs(selectedValue - nextY) < threshold && j < width) {
 
 		image_out[i][j] = 255;
 		nextY = image_in[i][j++];
 
-		//going to the left
+		//going to the up
 		while (abs(selectedValue - nextX) < threshold && i < height) {
 			image_out[i][j] = 255;
 			nextX = image_in[i--][j];
@@ -203,20 +232,20 @@ void imageSegmentation (int** image_out, int** image_in, int height, int width) 
 		i = mouseY;
 		nextX = selectedValue;
 	}
-
+	
+	//~~ Left - Bottom Quadrant: Going to the left and then down until edge ~~
 	//resetting the values
 	i = mouseY;
 	j = mouseX + 1;
 	nextX = selectedValue;
 	nextY = selectedValue;
-	//Left Bottom  Quadrant
-	//going up
+	//going left
 	while (abs(selectedValue - nextY) < threshold && j < width) {
 
 		image_out[i][j] = 255;
 		nextY = image_in[i][j--];
 
-		//going to the right
+		//going to the down
 		while (abs(selectedValue - nextX) < threshold && i < height) {
 			image_out[i][j] = 255;
 			nextX = image_in[i++][j];
@@ -225,29 +254,28 @@ void imageSegmentation (int** image_out, int** image_in, int height, int width) 
 		nextX = selectedValue;
 	}
 
-	//Left - Top  Quadrant
+	//~~ Left - Top  Quadrant: Going to the left and then up until edge ~~
 	//resetting the values
 	i = mouseY;
 	j = mouseX + 1;
 	nextX = selectedValue;
 	nextY = selectedValue;
-	//going up
+	//going left
 	while (abs(selectedValue - nextY) < threshold && j < width) {
 
 		image_out[i][j] = 255;
 		nextY = image_in[i][j--];
 
-		//going to the left
+		//going to the up
 		while (abs(selectedValue - nextX) < threshold && i < height) {
 			image_out[i][j] = 255;
 			nextX = image_in[i--][j];
 		}
 		i = mouseY;
 		nextX = selectedValue;
-	}
-	
-	
+	}	
 }
+//****************************************************************************************************************************
 
 
 
@@ -260,6 +288,7 @@ int main()
 	string outImage;
 	int action;
 	
+	//user input for file name and which image processing action they would like to perform 
 	cout << "Please enter the file name of the original image" << endl;
 	cin >> inImage;
 	cout << "Please enter the file name of what you want the output image to be named" << endl;
@@ -267,6 +296,7 @@ int main()
 	cout << "What would you like to do with this image? Please Type the number of the action you want and hit enter \n ([1] Edge Detection / [2] Image Segment Selection / [3] Shade Selector )";
 	cin >> action;
 
+	//**************************************** Allocating space in Memory for the image **********************************************
 	M_in = imread(inImage);
 	Mat_<uchar> M_in_g(M_in.rows, M_in.cols);
 	cvtColor(M_in, M_in_g, COLOR_BGR2GRAY);
@@ -327,15 +357,14 @@ int main()
 		//****************************************************
 
 	}
-
 	for (int i = 0; i < height; i++)
 		for (int j = 0; j < width; j++)
 			image_in[i][j] = M_in_g(i, j);
+	//****************************************************************************************************************************
 
-cout << " Test: "<< image_in[mouseX][mouseY] << endl;
-//Image Processing Begins
+////************************************************* Image Processing Begins ********************************************************
 
-// Action Switch ******************************************************************
+// ~~ Action Switch statement that controls the logic of which image processing process takes place ~~ 
 switch (action)
 {
 case (1): // Edge Detection
@@ -357,7 +386,7 @@ default:
 	return (1);
 	break;
 }
-//	Image Processing Ends & Print Output Image
+//**************************************** Image Processing Ends & Print Output Image **********************************************	
 
 	Mat_<uchar> M_out(height, width);
 	for (int ii = 0; ii < height; ii++)
