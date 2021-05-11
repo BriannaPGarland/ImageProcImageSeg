@@ -7,8 +7,8 @@
 	5. Then enter the name of what you want the output image to be named, again INCLUDE the file type (can be anything you want it to be)
 	6. Then you will be asked to select which imag processing process you would like to take part in, enter the number of which one and hit enter
 		Edge Detection(1): after you type 1 and hit enter in the previous step, a black and white version of your image will apear, then click 
-				anywhere on the image and hit any key to continue, this will bring up the image processed edge detection image and will prompt you input
-				a threshold, then click any key to close the window.
+				anywhere on the image and hit any key to continue. Then, it will prompt you choose either a Prewitt or Roberts filter by typing either 1 or 2.
+				 Next, it will prompt you input a threshold. This will bring up the image processed edge detection image then click any key to close the window.
 		Image Segment Selector(2) (THE MAIN PROGRAM ~ End Result): after you type 2 and hit enter in the previous step, a black and white version of your
 									   image will apear, Then with your mouse, click on the part of the image you would like to
 									   select and turn white. Then hit a key to continue. This will prompt you to input a threshold and then display an image 
@@ -50,22 +50,44 @@ void handleMouseSelect(int event, int x, int y, int flags, void* userdata)
 
 //**************************************** Edge Detection method 1 from the hw **********************************************
 
-void edgeDetect1(int** image_out, int** image_in, int** image_edge, int height, int width, int threshold)
+void edgeDetect1(int** image_out, int** image_in, int** image_edge, int height, int width, int threshold, int selectFilter)
 {
+	if (selectFilter == 1) {
+		int prewitt1[3][3] = { -1, -1, -1, 0, 0, 0, 1, 1, 1 };
+		int prewitt2[3][3] = { -1, 0, 1, -1, 0, 1, -1, 0, 1 };
 
-	int prewitt1[3][3] = { -1, -1, -1, 0, 0, 0, 1, 1, 1 };
-	int prewitt2[3][3] = { -1, 0, 1, -1, 0, 1, -1, 0, 1 };
+		for (int i = 1; i < height - 1; i++)
+			for (int j = 1; j < width - 1; j++) {
 
-	for (int i = 1; i < height - 1; i++)
-		for (int j = 1; j < width - 1; j++) {
+				for (int fy = 0; fy < 3; fy++)
+					for (int fx = 0; fx < 3; fx++) {
+						image_out[i][j] = image_out[i][j] + image_in[i - 1 + fy][j - 1 + fx] * prewitt1[fy][fx];
+						image_edge[i][j] = image_edge[i][j] + image_in[i - 1 + fy][j - 1 + fx] * prewitt2[fy][fx];
+					}
 
-			for (int fy = 0; fy < 3; fy++)
-				for (int fx = 0; fx < 3; fx++) {
-					image_out[i][j] = image_out[i][j] + image_in[i - 1 + fy][j - 1 + fx] * prewitt1[fy][fx];
-					image_edge[i][j] = image_edge[i][j] + image_in[i - 1 + fy][j - 1 + fx] * prewitt2[fy][fx];
-				}
+			}
+	}
+	else if (selectFilter == 2) {
+		int roberts1[2][2] = { -1, 0, 0, 1 };
+		int roberts2[2][2] = { 0, -1, 1, 0 };
 
-		}
+		for (int i = 1; i < height - 1; i++)
+			for (int j = 1; j < width - 1; j++) {
+
+				for (int fy = 0; fy < 2; fy++)
+					for (int fx = 0; fx < 2; fx++) {
+						image_out[i][j] = image_out[i][j] + image_in[i - 1 + fy][j - 1 + fx] * roberts1[fy][fx];
+						image_edge[i][j] = image_edge[i][j] + image_in[i - 1 + fy][j - 1 + fx] * roberts2[fy][fx];
+					}
+
+			}
+	
+	}
+	else
+	{
+		cout << "Sorry, that's not an option." << endl;
+		return;
+	}
 
 	for (int i = 1; i < height - 1; i++)
 		for (int j = 1; j < width - 1; j++) {
@@ -283,7 +305,7 @@ void imageSegmentation(int** image_out, int** image_in, int height, int width, i
 int main()
 {
 	int** image_in, ** image_out, ** image_edge;
-	int j, i, width, height, inputThreshold;
+	int j, i, width, height, inputThreshold, selector;
 	Mat M_in;
 	string inImage;
 	string outImage;
@@ -364,14 +386,37 @@ int main()
 	//****************************************************************************************************************************
 
 ////************************************************* Image Processing Begins ********************************************************
+	int a = 5, T = 100, prev = 0, mu1 = 0, mu2 = 0, counter = 0, totalPixels = width * height;
+
+	while (abs(T - prev) >= a) {
+		counter = 0, mu1 = 0, mu2 = 0;
+		for (int i = 0; i < height; i++) {
+			for (int j = 0; j < width; j++) {
+				if (image_in[i][j] > T) {
+					mu1 += image_in[i][j];
+					counter++;
+				}
+				else
+					mu2 += image_in[i][j];
+			}
+		}
+		prev = T;
+		mu1 = mu1 / counter;
+		mu2 = mu2 / (totalPixels - counter);
+		T = 0.5 * (mu1 + mu2);
+		
+	}
+
 
 // ~~ Action Switch statement that controls the logic of which image processing process takes place ~~ 
 	switch (action)
 	{
 	case (1): // Edge Detection
-		cout << "Input your threshold " << endl;
+		cout << "What method would you like to use? [1]Prewitt / [2]Roberts " << endl;
+		cin >> selector;
+		cout << "Input your threshold! The recommended threshold is: " << T << endl;
 		cin >> inputThreshold;
-		edgeDetect1(image_out, image_in, image_edge, height, width, inputThreshold);
+		edgeDetect1(image_out, image_in, image_edge, height, width, inputThreshold, selector);
 
 		break;
 	case (2): // Image Segment Selection
