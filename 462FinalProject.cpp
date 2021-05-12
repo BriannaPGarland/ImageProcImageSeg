@@ -55,40 +55,32 @@ void edgeDetect1(int** image_out, int** image_in, int** image_edge, int height, 
 	if (selectFilter == 1) {
 		int prewitt1[3][3] = { -1, -1, -1, 0, 0, 0, 1, 1, 1 };
 		int prewitt2[3][3] = { -1, 0, 1, -1, 0, 1, -1, 0, 1 };
-
 		for (int i = 1; i < height - 1; i++)
 			for (int j = 1; j < width - 1; j++) {
-
 				for (int fy = 0; fy < 3; fy++)
 					for (int fx = 0; fx < 3; fx++) {
 						image_out[i][j] = image_out[i][j] + image_in[i - 1 + fy][j - 1 + fx] * prewitt1[fy][fx];
 						image_edge[i][j] = image_edge[i][j] + image_in[i - 1 + fy][j - 1 + fx] * prewitt2[fy][fx];
 					}
-
 			}
 	}
 	else if (selectFilter == 2) {
 		int roberts1[2][2] = { -1, 0, 0, 1 };
 		int roberts2[2][2] = { 0, -1, 1, 0 };
-
 		for (int i = 1; i < height - 1; i++)
 			for (int j = 1; j < width - 1; j++) {
-
 				for (int fy = 0; fy < 2; fy++)
 					for (int fx = 0; fx < 2; fx++) {
 						image_out[i][j] = image_out[i][j] + image_in[i - 1 + fy][j - 1 + fx] * roberts1[fy][fx];
 						image_edge[i][j] = image_edge[i][j] + image_in[i - 1 + fy][j - 1 + fx] * roberts2[fy][fx];
 					}
-
 			}
-	
 	}
 	else
 	{
 		cout << "Sorry, that's not an option." << endl;
 		return;
 	}
-
 	for (int i = 1; i < height - 1; i++)
 		for (int j = 1; j < width - 1; j++) {
 			image_out[i][j] = abs(image_out[i][j]) + abs(image_edge[i][j]);
@@ -104,7 +96,7 @@ void edgeDetect1(int** image_out, int** image_in, int** image_edge, int height, 
 void shadeSelector(int** image_out, int** image_in, int height, int width) {
 	for (int j = 0; j < height; j++)
 		for (int k = 0; k < width; k++) {
-			if (image_in[j][k] > image_in[mouseX][mouseY] - 10 && image_in[j][k] <= image_in[mouseX][mouseY] + 10)
+			if (image_in[j][k] > image_in[mouseY][mouseX] -10 && image_in[j][k] <= image_in[mouseY][mouseX] + 10)
 			{
 				image_out[j][k] = 255 - image_in[j][k];
 			}
